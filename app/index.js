@@ -6,9 +6,9 @@ var chalk = require('chalk');
 
 
 var AspnetGenerator = yeoman.generators.Base.extend({
-    
+
     init: function () {
-        this.log(yosay('Welcome to the marvelous Aspnet generator!'));
+        this.log(yosay('Welcome to the marvellous ASP.NET generator!'));
     },
 
     askFor: function () {
@@ -19,18 +19,22 @@ var AspnetGenerator = yeoman.generators.Base.extend({
             name: 'type',
             message: 'What type of application do you want to create?',
             choices: [
-            {
-                name: 'Console Application',
-                value: 'console'
-            },
-            {
-                name: 'Web Application',
-                value: 'web'
-            },
-            {
-                name: 'MVC Application',
-                value: 'mvc'
-            }
+                {
+                    name: 'Console Application',
+                    value: 'console'
+                },
+                {
+                    name: 'Web Application',
+                    value: 'web'
+                },
+                {
+                    name: 'MVC Application',
+                    value: 'mvc'
+                },
+                {
+                    name: 'Nancy ASP.NET Application',
+                    value: 'nancy'
+                }
             ]
         }];
 
@@ -38,13 +42,26 @@ var AspnetGenerator = yeoman.generators.Base.extend({
             this.type = props.type;
 
             done();
-            }.bind(this));
-        },
+        }.bind(this));
+    },
 
     askForName: function () {
         var done = this.async();
-
-        var app = (this.type == 'console'? 'ConsoleApplication1' : (this.type == 'web' ? 'WebApplication1' : 'MvcApplication1'))
+        var app = '';
+        switch (this.type) {
+        case 'console':
+            app = 'ConsoleApplication';
+            break;
+        case 'web':
+            app = 'WebApplication';
+            break;
+        case 'mvc':
+            app = 'MvcApplication';
+            break;
+        case 'nancy':
+            app = 'NancyApplication'
+            break;
+        }
         var prompts = [{
             name: 'applicationName',
             message: 'What\'s the name of your ASP.NET application?',
@@ -54,32 +71,44 @@ var AspnetGenerator = yeoman.generators.Base.extend({
             this.applicationName = props.applicationName;
 
             done();
-            }.bind(this));
+        }.bind(this));
     },
 
     retrieveContent: function () {
         var done = this.async();
-
-        this.remote('ligershark', 'aspnet_vnext_samples', 'master', function(err, remote) {
-            done();
-        },true);
+        if (this.type === 'nancy') {
+            this.remote('jchannon', 'aspnet_vnext_samples', 'master', function (err, remote) {
+                done();
+            }, true);
+        } else {
+            this.remote('ligershark', 'aspnet_vnext_samples', 'master', function (err, remote) {
+                done();
+            }, true);
+        }
     },
 
     writing: function () {
-        this.copy(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/NuGet.config', 'NuGet.config');
+        if (this.type === 'nancy') {
+            this.copy(this.cacheRoot() + '/jchannon/aspnet_vnext_samples/master/NuGet.config', 'NuGet.config');
+        } else {
+            this.copy(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/NuGet.config', 'NuGet.config');
+        }
         this.mkdir(this.applicationName);
-        switch(this.type) {
-            case 'console':
-                this.directory(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/console', this.applicationName);
-                break;
-            case 'web':
-                this.directory(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/web', this.applicationName);
-                break;
-            case 'mvc':
-                this.directory(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/mvc', this.applicationName);
-                break;
-            default:
-                console.log('Unimplemented');
+        switch (this.type) {
+        case 'console':
+            this.directory(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/console', this.applicationName);
+            break;
+        case 'web':
+            this.directory(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/web', this.applicationName);
+            break;
+        case 'mvc':
+            this.directory(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/mvc', this.applicationName);
+            break;
+        case 'nancy':
+            this.directory(this.cacheRoot() + '/jchannon/aspnet_vnext_samples/master/web', this.applicationName);
+            break;
+        default:
+            console.log('Unknown project type');
         }
     },
 
