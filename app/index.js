@@ -88,11 +88,9 @@ var AspnetGenerator = yeoman.generators.Base.extend({
     },
 
     writing: function () {
-        if (this.type === 'nancy') {
-            this.copy(this.cacheRoot() + '/jchannon/aspnet_vnext_samples/master/NuGet.config', 'NuGet.config');
-        } else {
-            this.copy(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/NuGet.config', 'NuGet.config');
-        }
+        this.copy(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/NuGet.config', 'NuGet.config');
+        this.copy(this.cacheRoot() + '/ligershark/aspnet_vnext_samples/master/global.json', 'global.json');
+
         this.mkdir(this.applicationName);
         switch (this.type) {
         case 'console':
@@ -117,7 +115,12 @@ var AspnetGenerator = yeoman.generators.Base.extend({
         if (!this.options['skip-install']) {
             this.config.set('skip-install', true)
             //this.installDependencies();
-            this.spawnCommand('kpm', ['restore', './' + this.applicationName]);
+            try{
+                this.spawnCommand('kpm', ['restore', './' + this.applicationName]);
+            }
+            catch(e){
+                console.log("Unable to execute 'kpm restore''"+e);
+            }
         }
     }
 });
